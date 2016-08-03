@@ -146,4 +146,4 @@ for filename in Ansfiles:
 #  3,6,9層目にNormalization処理を追加。
 #  Thresholdで効果を上げたため、Normalizationを追加することでより良い結果が出るのではないかと考えたため 
 #  
-#
+
