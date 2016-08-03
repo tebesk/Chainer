@@ -1,0 +1,151 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+#http://kivantium.hateblo.jp/entry/2016/02/04/213050
+from __future__ import print_function
+import cv2
+import argparse
+import os
+
+import chainer
+from chainer import optimizers
+import chainer.functions as F
+import chainer.links as L
+import random
+import numpy as np
+from chainer import cuda,Variable,optimizers
+import time
+
+#Root file
+Ans_PATH="ans_area"
+Training_PATH="denoised"
+Result_PATH="160803_area/1th"
+
+
+# 引数の処理
+parser = argparse.ArgumentParser(
+    description='train convolution filters')
+parser.add_argument('org', help='Path to original image')
+
+# クラスの定義
+class Conv(chainer.Chain):
+	def __init__(self):
+		super(Conv, self).__init__(
+			# 入力・出力1ch, ksize=3
+			conv1=F.Convolution2D(1, 32, 5, pad=2),#conv1=F.Convolution2D(1, 32, 3, pad=1),
+			conv2=F.Convolution2D(32, 1, 5, pad=2),
+			conv3=F.Convolution2D(1, 32, 5, pad=2),#conv1=F.Convolution2D(1, 32, 3, pad=1),
+			conv4=F.Convolution2D(32, 1, 5, pad=2),
+			conv5=F.Convolution2D(1, 32, 5, pad=2),#conv1=F.Convolution2D(1, 32, 3, pad=1),
+			conv6=F.Convolution2D(32, 1, 5, pad=2),
+			conv7=F.Convolution2D(1, 64, 3, pad=1),#conv1=F.Convolution2D(1, 32, 3, pad=1),
+			conv8=F.Convolution2D(64, 1, 3, pad=1),
+			
+		)
+
+	def clear(self):
+		self.loss = None
+		self.accuracy = None
+
+	def forward(self, x):
+		self.clear()
+		h = F.relu(model.conv1(x))
+		h = F.relu(model.conv2(h))
+		h = F.relu(model.conv3(h))
+		h = F.relu(model.conv4(h))
+		h = F.relu(model.conv5(h))
+		h = F.relu(model.conv6(h))
+		h = F.relu(model.conv7(h))
+		h = F.relu(model.conv8(h))
+		
+		return h
+
+	def calc_loss(self, x, t):
+		self.clear()
+		h = F.relu(model.conv1(x))
+		h = F.relu(model.conv2(h))
+		h = F.relu(model.conv3(h))
+		h = F.relu(model.conv4(h))
+		h = F.relu(model.conv5(h))
+		h = F.relu(model.conv6(h))
+		h = F.relu(model.conv7(h))
+		h = F.relu(model.conv8(h))
+		loss = F.mean_squared_error(h, t)
+		return loss 
+
+### Read answer image
+Ansfiles = os.listdir('ans_area')
+
+# 学習対象のモデル作成
+model = Conv()
+
+chainer.cuda.get_device(0).use()  # Make a specified GPU current
+model.to_gpu()  # Copy the model to the GPU
+
+#train_image = chainer.Variable(np.asarray([[cv2.imread("ans_area/"+random.choice(Ansfiles),0)/255.0]], dtype=np.float32))
+
+
+	
+# 最適化の設定
+optimizer = optimizers.Adam()
+optimizer.setup(model)
+
+# 学習
+
+#for filename in range(100):
+#	train_image = chainer.Variable(np.asarray([[cv2.imread("denoised/"+Ansfiles[filename], 0)/255.0]], dtype=np.float32))
+#	target = chainer.Variable(np.asarray([[cv2.imread("ans/"+Ansfiles[filename], 0)/255.0]], dtype=np.float32))
+
+start = time.time()
+
+for seq in range(2000):
+	filenames= random.sample(Ansfiles,100)
+	for filename in filenames:
+#		print(filename)
+		train_image = chainer.Variable(cuda.cupy.asarray([[cv2.imread(Training_PATH+"/"+filename, 0)/255.0]], dtype=np.float32))
+		target = chainer.Variable(cuda.cupy.asarray([[cv2.imread(Ans_PATH+"/"+filename, 0)/255.0]], dtype=np.float32))
+	
+		loss = model.calc_loss(train_image, target)
+		model.zerograds()
+		loss.backward()
+		optimizer.update()
+	print (seq)
+	if seq%20==0:
+		elapsed_time = time.time() - start
+		print("{}: {}".format(seq, loss.data))
+		f = open(Result_PATH+"/write.txt","a")
+		f.write("{}: {}".format(seq, loss.data))
+		f.write("\nelapsed_time:{0}sec\n".format(elapsed_time))
+		f.close()
+		
+#	print(model.conv1.W.data[0][0])
+#	trained = model.forward(train_image).data[0][0]*255
+#	cv2.imwrite("trained.jpg", trained)
+
+# 学習結果の表示
+print(model.conv1.W.data[0][0])
+
+if os.path.isdir(Result_PATH)==False:
+	os.mkdir(Result_PATH)    
+	
+for filename in Ansfiles:
+	train_image = chainer.Variable(cuda.cupy.asarray([[cv2.imread(Training_PATH +"/"+filename, 0)/255.0]], dtype=np.float32))
+	trained = model.forward(train_image).data[0][0]*255
+	cv2.imwrite(Result_PATH+"/"+filename, cuda.to_cpu(trained))
+	
+	
+#
+#  実験プロセス
+#  1つのファイルを１００００ステップ分学習させ、あえて徹底的にオーバーフィッティングさせる
+#  そのモデルで次のファイルを学習させる 
+#  これを１００ファイル分だけ実施
+#
+#  エッジだけのものを答えにした結果。 このファイルで実験したときの  
+# １００ファイル目　9800Stepで: mean square error は0.00471516372636　となっている
+#[[-0.09336051  0.1853829   0.04092094 -0.14387129  0.09618491]
+# [ 0.02177362 -0.05224365 -0.09952049  0.00280143  0.07434209]
+# [ 0.13707821 -0.30128592 -0.08413173  0.18352953  0.03772697]
+# [-0.02080819 -0.12694013  0.00848041  0.01496854  0.11795343]
+# [-0.15959556  0.23649965  0.0546778  -0.03958907 -0.02575691]]
+#
+#　フォルダ_trainedに記録
