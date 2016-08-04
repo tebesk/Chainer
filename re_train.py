@@ -18,8 +18,8 @@ import time
 
 #Root file
 Ans_PATH="ans_area"
-Training_PATH="nntrn"
-Result_PATH="160804/1st"
+Training_PATH="default"
+Result_PATH="160804_2/nntrn"
 
 
 # 引数の処理
@@ -32,12 +32,12 @@ class Conv(chainer.Chain):
 	def __init__(self):
 		super(Conv, self).__init__(
 			# 入力・出力1ch, ksize=3
-			conv1=F.Convolution2D(1, 32, 5, pad=2),#conv1=F.Convolution2D(1, 32, 3, pad=1),
-			conv2=F.Convolution2D(32, 1, 5, pad=2),
-			conv3=F.Convolution2D(1, 32, 5, pad=2),#conv1=F.Convolution2D(1, 32, 3, pad=1),
-			conv4=F.Convolution2D(32, 1, 5, pad=2),
-			conv5=F.Convolution2D(1, 32, 5, pad=2),#conv1=F.Convolution2D(1, 32, 3, pad=1),
-			conv6=F.Convolution2D(32, 1, 5, pad=2),
+			conv1=F.Convolution2D(1, 64, 5, pad=2),#conv1=F.Convolution2D(1, 32, 3, pad=1),
+			conv2=F.Convolution2D(64, 1, 5, pad=2),
+			conv3=F.Convolution2D(1, 64, 5, pad=2),#conv1=F.Convolution2D(1, 32, 3, pad=1),
+			conv4=F.Convolution2D(64, 1, 5, pad=2),
+			conv5=F.Convolution2D(1, 64, 5, pad=2),#conv1=F.Convolution2D(1, 32, 3, pad=1),
+			conv6=F.Convolution2D(64, 1, 5, pad=2),
 			conv7=F.Convolution2D(1, 64, 3, pad=1),#conv1=F.Convolution2D(1, 32, 3, pad=1),
 			conv8=F.Convolution2D(64, 1, 3, pad=1),
 			norm1=L.BatchNormalization(1),
@@ -55,10 +55,10 @@ class Conv(chainer.Chain):
 		#h = F.relu(self.norm1(h,test= not train))
 		h = F.relu(model.conv3(h))
 		h = F.relu(model.conv4(h))
-		h = F.relu(self.norm1(h,test= not train))
+		#h = F.relu(self.norm1(h,test= not train))
 		h = F.relu(model.conv5(h))
 		h = F.relu(model.conv6(h))
-		h = F.relu(self.norm1(h,test= not train))
+		#h = F.relu(self.norm1(h,test= not train))
 		h = F.relu(model.conv7(h))
 		h = F.relu(model.conv8(h))
 		
@@ -71,10 +71,10 @@ class Conv(chainer.Chain):
 		#h = F.relu(self.norm1(h,test= not train))
 		h = F.relu(model.conv3(h))
 		h = F.relu(model.conv4(h))
-		h = F.relu(self.norm1(h,test= not train))
+		#h = F.relu(self.norm1(h,test= not train))
 		h = F.relu(model.conv5(h))
 		h = F.relu(model.conv6(h))
-		h = F.relu(self.norm1(h,test= not train))
+		#h = F.relu(self.norm1(h,test= not train))
 		h = F.relu(model.conv7(h))
 		h = F.relu(model.conv8(h))
 		loss = F.mean_squared_error(h, t)
@@ -143,16 +143,5 @@ for filename in Ansfiles:
 	
 #
 #  実験プロセス
-#  1つのファイルを１００００ステップ分学習させ、あえて徹底的にオーバーフィッティングさせる
-#  そのモデルで次のファイルを学習させる 
-#  これを１００ファイル分だけ実施
-#
-#  エッジだけのものを答えにした結果。 このファイルで実験したときの  
-# １００ファイル目　9800Stepで: mean square error は0.00471516372636　となっている
-#[[-0.09336051  0.1853829   0.04092094 -0.14387129  0.09618491]
-# [ 0.02177362 -0.05224365 -0.09952049  0.00280143  0.07434209]
-# [ 0.13707821 -0.30128592 -0.08413173  0.18352953  0.03772697]
-# [-0.02080819 -0.12694013  0.00848041  0.01496854  0.11795343]
-# [-0.15959556  0.23649965  0.0546778  -0.03958907 -0.02575691]]
-#
-#　フォルダ_trainedに記録
+
+
