@@ -18,8 +18,8 @@ import time
 
 #Root file
 Ans_PATH="ans_area"
-Training_PATH="default"
-Result_PATH="160804_2/nntrn"
+Training_PATH="denoised"
+Result_PATH="160804_3/1st"
 
 
 # 引数の処理
@@ -40,6 +40,8 @@ class Conv(chainer.Chain):
 			conv6=F.Convolution2D(64, 1, 5, pad=2),
 			conv7=F.Convolution2D(1, 64, 3, pad=1),#conv1=F.Convolution2D(1, 32, 3, pad=1),
 			conv8=F.Convolution2D(64, 1, 3, pad=1),
+			conv9=F.Convolution2D(1, 64, 5, pad=2),#conv1=F.Convolution2D(1, 32, 3, pad=1),
+			conv10=F.Convolution2D(64, 1, 5, pad=2),
 			norm1=L.BatchNormalization(1),
 		)
 
@@ -55,12 +57,14 @@ class Conv(chainer.Chain):
 		#h = F.relu(self.norm1(h,test= not train))
 		h = F.relu(model.conv3(h))
 		h = F.relu(model.conv4(h))
-		#h = F.relu(self.norm1(h,test= not train))
+		h = F.relu(self.norm1(h,test= not train))
 		h = F.relu(model.conv5(h))
 		h = F.relu(model.conv6(h))
 		#h = F.relu(self.norm1(h,test= not train))
 		h = F.relu(model.conv7(h))
 		h = F.relu(model.conv8(h))
+		h = F.relu(model.conv9(h))
+		h = F.relu(model.conv10(h))
 		
 		return h
 
@@ -71,12 +75,14 @@ class Conv(chainer.Chain):
 		#h = F.relu(self.norm1(h,test= not train))
 		h = F.relu(model.conv3(h))
 		h = F.relu(model.conv4(h))
-		#h = F.relu(self.norm1(h,test= not train))
+		h = F.relu(self.norm1(h,test= not train))
 		h = F.relu(model.conv5(h))
 		h = F.relu(model.conv6(h))
 		#h = F.relu(self.norm1(h,test= not train))
 		h = F.relu(model.conv7(h))
 		h = F.relu(model.conv8(h))
+		h = F.relu(model.conv9(h))
+		h = F.relu(model.conv10(h))
 		loss = F.mean_squared_error(h, t)
 		return loss 
 
