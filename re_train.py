@@ -69,10 +69,6 @@ class Conv(chainer.Chain):
 		
 		h = F.relu(model.conv7(h))
 		h = F.relu(model.conv8(h))
-
-		if layer > 0:
-			h = F.relu(self.norm1(h,test= not train))
-
 		h = F.relu(model.conv9(h))
 		h = F.relu(model.conv10(h))
 		
@@ -100,10 +96,6 @@ class Conv(chainer.Chain):
 		
 		h = F.relu(model.conv7(h))
 		h = F.relu(model.conv8(h))
-
-		if layer > 0:
-			h = F.relu(self.norm1(h,test= not train))
-
 		h = F.relu(model.conv9(h))
 		h = F.relu(model.conv10(h))
 			
