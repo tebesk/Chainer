@@ -52,18 +52,20 @@ class Conv(chainer.Chain):
 		
 		h = F.relu(model.conv1(x))
 		h = F.relu(model.conv2(h))
-		#h = F.relu(self.norm1(h,test= not train))
+		h = F.relu(self.norm1(h,test= not train))
+		
 		h = F.relu(model.conv3(h))
 		h = F.relu(model.conv4(h))
-		#h = F.relu(self.norm1(h,test= not train))
+		h = F.relu(self.norm1(h,test= not train))
 		
-		if layer >0:
+		if layer > 0:
 			h = F.relu(model.conv5(h))
 			h = F.relu(model.conv6(h))
-			#h = F.relu(self.norm1(h,test= not train))
-		if layer >1:
+			h = F.relu(self.norm1(h,test= not train))
+		if layer > 1:
 			h = F.relu(model.conv7(h))
 			h = F.relu(model.conv8(h))
+			h = F.relu(self.norm1(h,test= not train))
 		if layer > 2:
 			h = F.relu(model.conv9(h))
 			h = F.relu(model.conv10(h))
@@ -75,31 +77,34 @@ class Conv(chainer.Chain):
 
 		h = F.relu(model.conv1(x))
 		h = F.relu(model.conv2(h))
-		#h = F.relu(self.norm1(h,test= not train))
+		h = F.relu(self.norm1(h,test= not train))
+		
 		h = F.relu(model.conv3(h))
 		h = F.relu(model.conv4(h))
-		#h = F.relu(self.norm1(h,test= not train))
+		h = F.relu(self.norm1(h,test= not train))
 		
-		if layer >0:
+		if layer > 0:
 			h = F.relu(model.conv5(h))
 			h = F.relu(model.conv6(h))
-			#h = F.relu(self.norm1(h,test= not train))
-		if layer >1:
+			h = F.relu(self.norm1(h,test= not train))
+		if layer > 1:
 			h = F.relu(model.conv7(h))
 			h = F.relu(model.conv8(h))
+			h = F.relu(self.norm1(h,test= not train))
 		if layer > 2:
 			h = F.relu(model.conv9(h))
 			h = F.relu(model.conv10(h))
+			
 		loss = F.mean_squared_error(h, t)
-		return loss 
+		return loss
 
 
 for layer in range(4):
 
 	#Root file
-	Ans_PATH="ans_area"
-	Training_PATH="denoised"
-	Result_PATH="160804_4/"+str(layer)
+	Ans_PATH= "ans_area"
+	Training_PATH= "denoised"
+	Result_PATH= "160804_5/" + str(layer)
 
 
 	### Read answer image
