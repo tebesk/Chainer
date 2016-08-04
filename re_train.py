@@ -18,8 +18,8 @@ import time
 
 #Root file
 Ans_PATH="ans_area"
-Training_PATH="denoised"
-Result_PATH="160803_norm_add/1st"
+Training_PATH="nntrn"
+Result_PATH="160804/1st"
 
 
 # 引数の処理
@@ -52,7 +52,7 @@ class Conv(chainer.Chain):
 		
 		h = F.relu(model.conv1(x))
 		h = F.relu(model.conv2(h))
-		h = F.relu(self.norm1(h,test= not train))
+		#h = F.relu(self.norm1(h,test= not train))
 		h = F.relu(model.conv3(h))
 		h = F.relu(model.conv4(h))
 		h = F.relu(self.norm1(h,test= not train))
@@ -68,7 +68,7 @@ class Conv(chainer.Chain):
 		self.clear()
 		h = F.relu(model.conv1(x))
 		h = F.relu(model.conv2(h))
-		h = F.relu(self.norm1(h,test= not train))
+		#h = F.relu(self.norm1(h,test= not train))
 		h = F.relu(model.conv3(h))
 		h = F.relu(model.conv4(h))
 		h = F.relu(self.norm1(h,test= not train))
@@ -105,7 +105,7 @@ optimizer.setup(model)
 
 start = time.time()
 
-for seq in range(2000):
+for seq in range(100):
 	filenames= random.sample(Ansfiles,100)
 	for filename in filenames:
 #		print(filename)
@@ -143,7 +143,16 @@ for filename in Ansfiles:
 	
 #
 #  実験プロセス
-#  3,6,9層目にNormalization処理を追加。
-#  Thresholdで効果を上げたため、Normalizationを追加することでより良い結果が出るのではないかと考えたため 
-#  
-
+#  1つのファイルを１００００ステップ分学習させ、あえて徹底的にオーバーフィッティングさせる
+#  そのモデルで次のファイルを学習させる 
+#  これを１００ファイル分だけ実施
+#
+#  エッジだけのものを答えにした結果。 このファイルで実験したときの  
+# １００ファイル目　9800Stepで: mean square error は0.00471516372636　となっている
+#[[-0.09336051  0.1853829   0.04092094 -0.14387129  0.09618491]
+# [ 0.02177362 -0.05224365 -0.09952049  0.00280143  0.07434209]
+# [ 0.13707821 -0.30128592 -0.08413173  0.18352953  0.03772697]
+# [-0.02080819 -0.12694013  0.00848041  0.01496854  0.11795343]
+# [-0.15959556  0.23649965  0.0546778  -0.03958907 -0.02575691]]
+#
+#　フォルダ_trainedに記録
