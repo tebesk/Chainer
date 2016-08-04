@@ -52,23 +52,29 @@ class Conv(chainer.Chain):
 		
 		h = F.relu(model.conv1(x))
 		h = F.relu(model.conv2(h))
-		h = F.relu(self.norm1(h,test= not train))
+		if layer > 0:
+			h = F.relu(self.norm1(h,test= not train))
 		
 		h = F.relu(model.conv3(h))
 		h = F.relu(model.conv4(h))
-		h = F.relu(self.norm1(h,test= not train))
 		
 		if layer > 0:
-			h = F.relu(model.conv5(h))
-			h = F.relu(model.conv6(h))
 			h = F.relu(self.norm1(h,test= not train))
-		if layer > 1:
-			h = F.relu(model.conv7(h))
-			h = F.relu(model.conv8(h))
+				
+		h = F.relu(model.conv5(h))
+		h = F.relu(model.conv6(h))
+		
+		if layer > 0:
 			h = F.relu(self.norm1(h,test= not train))
-		if layer > 2:
-			h = F.relu(model.conv9(h))
-			h = F.relu(model.conv10(h))
+		
+		h = F.relu(model.conv7(h))
+		h = F.relu(model.conv8(h))
+
+		if layer > 0:
+			h = F.relu(self.norm1(h,test= not train))
+
+		h = F.relu(model.conv9(h))
+		h = F.relu(model.conv10(h))
 		
 		return h
 
@@ -77,34 +83,40 @@ class Conv(chainer.Chain):
 
 		h = F.relu(model.conv1(x))
 		h = F.relu(model.conv2(h))
-		h = F.relu(self.norm1(h,test= not train))
+		if layer > 0:
+			h = F.relu(self.norm1(h,test= not train))
 		
 		h = F.relu(model.conv3(h))
 		h = F.relu(model.conv4(h))
-		h = F.relu(self.norm1(h,test= not train))
 		
 		if layer > 0:
-			h = F.relu(model.conv5(h))
-			h = F.relu(model.conv6(h))
 			h = F.relu(self.norm1(h,test= not train))
-		if layer > 1:
-			h = F.relu(model.conv7(h))
-			h = F.relu(model.conv8(h))
+				
+		h = F.relu(model.conv5(h))
+		h = F.relu(model.conv6(h))
+		
+		if layer > 0:
 			h = F.relu(self.norm1(h,test= not train))
-		if layer > 2:
-			h = F.relu(model.conv9(h))
-			h = F.relu(model.conv10(h))
+		
+		h = F.relu(model.conv7(h))
+		h = F.relu(model.conv8(h))
+
+		if layer > 0:
+			h = F.relu(self.norm1(h,test= not train))
+
+		h = F.relu(model.conv9(h))
+		h = F.relu(model.conv10(h))
 			
 		loss = F.mean_squared_error(h, t)
 		return loss
 
 
-for layer in range(4):
+for layer in range(2):
 
 	#Root file
 	Ans_PATH= "ans_area"
 	Training_PATH= "denoised"
-	Result_PATH= "160804_5/" + str(layer)
+	Result_PATH= "160805_"+str(layer)+"/"
 
 
 	### Read answer image
@@ -132,7 +144,7 @@ for layer in range(4):
 
 	start = time.time()
 
-	for seq in range(100):
+	for seq in range(2000):
 		filenames= random.sample(Ansfiles,100)
 		for filename in filenames:
 	#		print(filename)
@@ -151,7 +163,13 @@ for layer in range(4):
 			f.write("{}: {}".format(seq, loss.data))
 			f.write("\nelapsed_time:{0}sec\n".format(elapsed_time))
 			f.close()
-			
+		if seq%500==0:
+			if os.path.isdir(Result_PATH+seq)==False:
+				os.mkdir(Result_PATH+seq)    		
+			for filename in Ansfiles:
+				train_image = chainer.Variable(cuda.cupy.asarray([[cv2.imread(Training_PATH +"/"+filename, 0)/255.0]], dtype=np.float32))
+				trained = model.forward(train_image,layer).data[0][0]*255
+				cv2.imwrite(Result_PATH+seq+"/"+filename, cuda.to_cpu(trained))
 	#	print(model.conv1.W.data[0][0])
 	#	trained = model.forward(train_image).data[0][0]*255
 	#	cv2.imwrite("trained.jpg", trained)
