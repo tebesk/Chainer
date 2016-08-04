@@ -16,10 +16,11 @@ import numpy as np
 from chainer import cuda,Variable,optimizers
 import time
 
+
 #Root file
 Ans_PATH="ans_area"
 Training_PATH="denoised"
-Result_PATH="160804_3/1st"
+Result_PATH="160804_3/2nd"
 
 
 # 引数の処理
@@ -57,7 +58,7 @@ class Conv(chainer.Chain):
 		#h = F.relu(self.norm1(h,test= not train))
 		h = F.relu(model.conv3(h))
 		h = F.relu(model.conv4(h))
-		h = F.relu(self.norm1(h,test= not train))
+		#h = F.relu(self.norm1(h,test= not train))
 		h = F.relu(model.conv5(h))
 		h = F.relu(model.conv6(h))
 		#h = F.relu(self.norm1(h,test= not train))
@@ -75,7 +76,7 @@ class Conv(chainer.Chain):
 		#h = F.relu(self.norm1(h,test= not train))
 		h = F.relu(model.conv3(h))
 		h = F.relu(model.conv4(h))
-		h = F.relu(self.norm1(h,test= not train))
+		#h = F.relu(self.norm1(h,test= not train))
 		h = F.relu(model.conv5(h))
 		h = F.relu(model.conv6(h))
 		#h = F.relu(self.norm1(h,test= not train))
@@ -126,7 +127,7 @@ for seq in range(100):
 	if seq%20==0:
 		elapsed_time = time.time() - start
 		print("{}: {}".format(seq, loss.data))
-		f = open(Result_PATH+"/write.txt","a")
+		f = open(Result_PATH+"/a.txt","a")
 		f.write("{}: {}".format(seq, loss.data))
 		f.write("\nelapsed_time:{0}sec\n".format(elapsed_time))
 		f.close()
