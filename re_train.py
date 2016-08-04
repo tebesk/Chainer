@@ -17,10 +17,7 @@ from chainer import cuda,Variable,optimizers
 import time
 
 
-#Root file
-Ans_PATH="ans_area"
-Training_PATH="denoised"
-Result_PATH="160804_3/2nd"
+
 
 
 # 引数の処理
@@ -50,7 +47,7 @@ class Conv(chainer.Chain):
 		self.loss = None
 		self.accuracy = None
 
-	def forward(self, x,train=True):
+	def forward(self, x,layer,train=True):
 		self.clear()
 		
 		h = F.relu(model.conv1(x))
@@ -59,96 +56,113 @@ class Conv(chainer.Chain):
 		h = F.relu(model.conv3(h))
 		h = F.relu(model.conv4(h))
 		#h = F.relu(self.norm1(h,test= not train))
-		h = F.relu(model.conv5(h))
-		h = F.relu(model.conv6(h))
-		#h = F.relu(self.norm1(h,test= not train))
-		h = F.relu(model.conv7(h))
-		h = F.relu(model.conv8(h))
-		h = F.relu(model.conv9(h))
-		h = F.relu(model.conv10(h))
+		
+		if layer >0:
+			h = F.relu(model.conv5(h))
+			h = F.relu(model.conv6(h))
+			#h = F.relu(self.norm1(h,test= not train))
+		if layer >1:
+			h = F.relu(model.conv7(h))
+			h = F.relu(model.conv8(h))
+		if layer > 2:
+			h = F.relu(model.conv9(h))
+			h = F.relu(model.conv10(h))
 		
 		return h
 
-	def calc_loss(self, x, t,train=True):
+	def calc_loss(self, x, t,layer,train=True):
 		self.clear()
+
 		h = F.relu(model.conv1(x))
 		h = F.relu(model.conv2(h))
 		#h = F.relu(self.norm1(h,test= not train))
 		h = F.relu(model.conv3(h))
 		h = F.relu(model.conv4(h))
 		#h = F.relu(self.norm1(h,test= not train))
-		h = F.relu(model.conv5(h))
-		h = F.relu(model.conv6(h))
-		#h = F.relu(self.norm1(h,test= not train))
-		h = F.relu(model.conv7(h))
-		h = F.relu(model.conv8(h))
-		h = F.relu(model.conv9(h))
-		h = F.relu(model.conv10(h))
+		
+		if layer >0:
+			h = F.relu(model.conv5(h))
+			h = F.relu(model.conv6(h))
+			#h = F.relu(self.norm1(h,test= not train))
+		if layer >1:
+			h = F.relu(model.conv7(h))
+			h = F.relu(model.conv8(h))
+		if layer > 2:
+			h = F.relu(model.conv9(h))
+			h = F.relu(model.conv10(h))
 		loss = F.mean_squared_error(h, t)
 		return loss 
 
-### Read answer image
-Ansfiles = os.listdir('ans_area')
 
-# 学習対象のモデル作成
-model = Conv()
+for layer in range(4):
 
-chainer.cuda.get_device(0).use()  # Make a specified GPU current
-model.to_gpu()  # Copy the model to the GPU
-
-#train_image = chainer.Variable(np.asarray([[cv2.imread("ans_area/"+random.choice(Ansfiles),0)/255.0]], dtype=np.float32))
+	#Root file
+	Ans_PATH="ans_area"
+	Training_PATH="denoised"
+	Result_PATH="160804_4/"+str(layer)
 
 
-	
-# 最適化の設定
-optimizer = optimizers.Adam()
-optimizer.setup(model)
+	### Read answer image
+	Ansfiles = os.listdir('ans_area')
 
-# 学習
+	# 学習対象のモデル作成
+	model = Conv()
 
-#for filename in range(100):
-#	train_image = chainer.Variable(np.asarray([[cv2.imread("denoised/"+Ansfiles[filename], 0)/255.0]], dtype=np.float32))
-#	target = chainer.Variable(np.asarray([[cv2.imread("ans/"+Ansfiles[filename], 0)/255.0]], dtype=np.float32))
+	chainer.cuda.get_device(0).use()  # Make a specified GPU current
+	model.to_gpu()  # Copy the model to the GPU
 
-start = time.time()
+	#train_image = chainer.Variable(np.asarray([[cv2.imread("ans_area/"+random.choice(Ansfiles),0)/255.0]], dtype=np.float32))
 
-for seq in range(100):
-	filenames= random.sample(Ansfiles,100)
-	for filename in filenames:
-#		print(filename)
-		train_image = chainer.Variable(cuda.cupy.asarray([[cv2.imread(Training_PATH+"/"+filename, 0)/255.0]], dtype=np.float32))
-		target = chainer.Variable(cuda.cupy.asarray([[cv2.imread(Ans_PATH+"/"+filename, 0)/255.0]], dtype=np.float32))
-	
-		loss = model.calc_loss(train_image, target)
-		model.zerograds()
-		loss.backward()
-		optimizer.update()
-	print (seq)
-	if seq%20==0:
-		elapsed_time = time.time() - start
-		print("{}: {}".format(seq, loss.data))
-		f = open(Result_PATH+"/a.txt","a")
-		f.write("{}: {}".format(seq, loss.data))
-		f.write("\nelapsed_time:{0}sec\n".format(elapsed_time))
-		f.close()
+
 		
-#	print(model.conv1.W.data[0][0])
-#	trained = model.forward(train_image).data[0][0]*255
-#	cv2.imwrite("trained.jpg", trained)
+	# 最適化の設定
+	optimizer = optimizers.Adam()
+	optimizer.setup(model)
 
-# 学習結果の表示
-print(model.conv1.W.data[0][0])
+	# 学習
 
-if os.path.isdir(Result_PATH)==False:
-	os.mkdir(Result_PATH)    
+	#for filename in range(100):
+	#	train_image = chainer.Variable(np.asarray([[cv2.imread("denoised/"+Ansfiles[filename], 0)/255.0]], dtype=np.float32))
+	#	target = chainer.Variable(np.asarray([[cv2.imread("ans/"+Ansfiles[filename], 0)/255.0]], dtype=np.float32))
+
+	start = time.time()
+
+	for seq in range(100):
+		filenames= random.sample(Ansfiles,100)
+		for filename in filenames:
+	#		print(filename)
+			train_image = chainer.Variable(cuda.cupy.asarray([[cv2.imread(Training_PATH+"/"+filename, 0)/255.0]], dtype=np.float32))
+			target = chainer.Variable(cuda.cupy.asarray([[cv2.imread(Ans_PATH+"/"+filename, 0)/255.0]], dtype=np.float32))
+		
+			loss = model.calc_loss(train_image, target,layer)
+			model.zerograds()
+			loss.backward()
+			optimizer.update()
+		print (seq)
+		if seq%20==0:
+			elapsed_time = time.time() - start
+			print("{}: {}".format(seq, loss.data))
+			f = open(Result_PATH+"/a.txt","a")
+			f.write("{}: {}".format(seq, loss.data))
+			f.write("\nelapsed_time:{0}sec\n".format(elapsed_time))
+			f.close()
+			
+	#	print(model.conv1.W.data[0][0])
+	#	trained = model.forward(train_image).data[0][0]*255
+	#	cv2.imwrite("trained.jpg", trained)
+
+	# 学習結果の表示
+	print(model.conv1.W.data[0][0])
+
+	if os.path.isdir(Result_PATH)==False:
+		os.mkdir(Result_PATH)    
+		
+	for filename in Ansfiles:
+		train_image = chainer.Variable(cuda.cupy.asarray([[cv2.imread(Training_PATH +"/"+filename, 0)/255.0]], dtype=np.float32))
+		trained = model.forward(train_image,layer).data[0][0]*255
+		cv2.imwrite(Result_PATH+"/"+filename, cuda.to_cpu(trained))
+		
 	
-for filename in Ansfiles:
-	train_image = chainer.Variable(cuda.cupy.asarray([[cv2.imread(Training_PATH +"/"+filename, 0)/255.0]], dtype=np.float32))
-	trained = model.forward(train_image).data[0][0]*255
-	cv2.imwrite(Result_PATH+"/"+filename, cuda.to_cpu(trained))
-	
-	
-#
-#  実験プロセス
+
 
 
