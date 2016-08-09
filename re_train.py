@@ -15,7 +15,7 @@ import random
 import numpy as np
 from chainer import cuda,Variable,optimizers
 import time
-
+import cupy
 
 
 
@@ -30,10 +30,10 @@ class Conv(chainer.Chain):
 	def __init__(self):
 		super(Conv, self).__init__(
 			# 入力・出力1ch, ksize=3
-			conv1=F.Convolution2D(1, 64, 5, pad=2),#conv1=F.Convolution2D(1, 32, 3, pad=1),
-			conv2=F.Convolution2D(64, 1, 5, pad=2),
-			conv3=F.Convolution2D(1, 64, 5, pad=2),#conv1=F.Convolution2D(1, 32, 3, pad=1),
-			conv4=F.Convolution2D(64, 1, 5, pad=2),
+			conv1=F.Convolution2D(1, 32, 5, pad=2),#conv1=F.Convolution2D(1, 32, 3, pad=1),
+			conv2=F.Convolution2D(32, 1, 5, pad=2),
+			conv3=F.Convolution2D(1, 32, 5, pad=2),#conv1=F.Convolution2D(1, 32, 3, pad=1),
+			conv4=F.Convolution2D(32, 1, 5, pad=2),
 			conv5=F.Convolution2D(1, 64, 5, pad=2),#conv1=F.Convolution2D(1, 32, 3, pad=1),
 			conv6=F.Convolution2D(64, 1, 5, pad=2),
 			conv7=F.Convolution2D(1, 64, 3, pad=1),#conv1=F.Convolution2D(1, 32, 3, pad=1),
@@ -52,20 +52,37 @@ class Conv(chainer.Chain):
 		
 		h = F.relu(model.conv1(x))
 		h = F.relu(model.conv2(h))
-		if layer > 0:
-			h = F.relu(self.norm1(h,test= not train))
+		if layer == 0:
+			h = F.relu(F.average_pooling_2d(h,3,1,pad=1))
+		if layer == 1:
+			h = F.relu(F.average_pooling_2d(h,5,1,pad=2))
+		if layer == 2:
+			h = F.relu(F.average_pooling_2d(h,9,1,pad=4))
+
+		h = F.reshape(h,(1,1,256, 300))
 		
 		h = F.relu(model.conv3(h))
 		h = F.relu(model.conv4(h))
 		
-		if layer > 0:
-			h = F.relu(self.norm1(h,test= not train))
+		if layer == 0:
+			h = F.relu(F.average_pooling_2d(h,3,1,pad=1))
+		if layer == 1:
+			h = F.relu(F.average_pooling_2d(h,5,1,pad=2))
+		if layer == 2:
+			h = F.relu(F.average_pooling_2d(h,9,1,pad=4))
+		h = F.reshape(h,(1,1,256, 300))
 				
 		h = F.relu(model.conv5(h))
 		h = F.relu(model.conv6(h))
 		
-		if layer > 0:
-			h = F.relu(self.norm1(h,test= not train))
+		if layer == 0:
+			h = F.relu(F.average_pooling_2d(h,3,1,pad=1))
+		if layer == 1:
+			h = F.relu(F.average_pooling_2d(h,5,1,pad=2))
+		if layer == 2:
+			h = F.relu(F.average_pooling_2d(h,9,1,pad=4))
+
+		h = F.reshape(h,(1,1,256, 300))
 		
 		h = F.relu(model.conv7(h))
 		h = F.relu(model.conv8(h))
@@ -79,20 +96,38 @@ class Conv(chainer.Chain):
 
 		h = F.relu(model.conv1(x))
 		h = F.relu(model.conv2(h))
-		if layer > 0:
-			h = F.relu(self.norm1(h,test= not train))
+		if layer == 0:
+			h = F.relu(F.average_pooling_2d(h,3,1,pad=1))
+		if layer == 1:
+			h = F.relu(F.average_pooling_2d(h,5,1,pad=2))
+		if layer == 2:
+			h = F.relu(F.average_pooling_2d(h,9,1,pad=4))
+
+		h = F.reshape(h,(1,1,256, 300))
 		
 		h = F.relu(model.conv3(h))
 		h = F.relu(model.conv4(h))
 		
-		if layer > 0:
-			h = F.relu(self.norm1(h,test= not train))
+		if layer == 0:
+			h = F.relu(F.average_pooling_2d(h,3,1,pad=1))
+		if layer == 1:
+			h = F.relu(F.average_pooling_2d(h,5,1,pad=2))
+		if layer == 2:
+			h = F.relu(F.average_pooling_2d(h,9,1,pad=4))
+
+		h = F.reshape(h,(1,1,256, 300))
 				
 		h = F.relu(model.conv5(h))
 		h = F.relu(model.conv6(h))
 		
-		if layer > 0:
-			h = F.relu(self.norm1(h,test= not train))
+		if layer == 0:
+			h = F.relu(F.average_pooling_2d(h,3,1,pad=1))
+		if layer == 1:
+			h = F.relu(F.average_pooling_2d(h,5,1,pad=2))
+		if layer == 2:
+			h = F.relu(F.average_pooling_2d(h,9,1,pad=4))
+
+		h = F.reshape(h,(1,1,256, 300))
 		
 		h = F.relu(model.conv7(h))
 		h = F.relu(model.conv8(h))
@@ -103,12 +138,12 @@ class Conv(chainer.Chain):
 		return loss
 
 
-for layer in range(2):
+for layer in range(3):
 
 	#Root file
 	Ans_PATH= "ans_area"
 	Training_PATH= "denoised"
-	Result_PATH= "160805_"+str(layer)+"/"
+	Result_PATH= "160809_"+str(layer)+"/"
 
 
 	### Read answer image
@@ -143,7 +178,7 @@ for layer in range(2):
 			train_image = chainer.Variable(cuda.cupy.asarray([[cv2.imread(Training_PATH+"/"+filename, 0)/255.0]], dtype=np.float32))
 			target = chainer.Variable(cuda.cupy.asarray([[cv2.imread(Ans_PATH+"/"+filename, 0)/255.0]], dtype=np.float32))
 		
-			loss = model.calc_loss(train_image, target,layer)
+			loss = model.calc_loss(train_image, target, layer)
 			model.zerograds()
 			loss.backward()
 			optimizer.update()
@@ -151,17 +186,19 @@ for layer in range(2):
 		if seq%20==0:
 			elapsed_time = time.time() - start
 			print("{}: {}".format(seq, loss.data))
-			f = open(Result_PATH+"/a.txt","a")
+			temp= seq/500
+			temp2= temp*500
+			f = open(Result_PATH+str(temp2)+"/a.txt","a")
 			f.write("{}: {}".format(seq, loss.data))
 			f.write("\nelapsed_time:{0}sec\n".format(elapsed_time))
 			f.close()
 		if seq%500==0:
-			if os.path.isdir(Result_PATH+seq)==False:
-				os.mkdir(Result_PATH+seq)    		
+			if os.path.isdir(Result_PATH+str(seq))==False:
+				os.mkdir(Result_PATH+str(seq))    		
 			for filename in Ansfiles:
 				train_image = chainer.Variable(cuda.cupy.asarray([[cv2.imread(Training_PATH +"/"+filename, 0)/255.0]], dtype=np.float32))
 				trained = model.forward(train_image,layer).data[0][0]*255
-				cv2.imwrite(Result_PATH+seq+"/"+filename, cuda.to_cpu(trained))
+				cv2.imwrite(Result_PATH+str(seq)+"/"+filename, cuda.to_cpu(trained))
 	#	print(model.conv1.W.data[0][0])
 	#	trained = model.forward(train_image).data[0][0]*255
 	#	cv2.imwrite("trained.jpg", trained)
@@ -169,13 +206,13 @@ for layer in range(2):
 	# 学習結果の表示
 	print(model.conv1.W.data[0][0])
 
-	if os.path.isdir(Result_PATH)==False:
-		os.mkdir(Result_PATH)    
+	if os.path.isdir(Result_PATH+str(seq))==False:
+		os.mkdir(Result_PATH+str(seq))    
 		
 	for filename in Ansfiles:
 		train_image = chainer.Variable(cuda.cupy.asarray([[cv2.imread(Training_PATH +"/"+filename, 0)/255.0]], dtype=np.float32))
 		trained = model.forward(train_image,layer).data[0][0]*255
-		cv2.imwrite(Result_PATH+"/"+filename, cuda.to_cpu(trained))
+		cv2.imwrite(Result_PATH+str(seq)+"/"+filename, cuda.to_cpu(trained))
 		
 	
 
