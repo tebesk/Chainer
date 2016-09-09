@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
@@ -52,20 +51,20 @@ class Conv(chainer.Chain):
 		self.clear()
 		
 		h = F.relu(model.conv1(x))
-		h = F.relu(model.conv2(h))
+		#h = F.relu(model.conv2(h))
 		
-		h = F.relu(model.conv3(h))
-		h = F.relu(model.conv4(h))
+		#h = F.relu(model.conv3(h))
+		#h = F.relu(model.conv4(h))
 		
 				
-		h = F.relu(model.conv5(h))
-		h = F.relu(model.conv6(h))
+		#h = F.relu(model.conv5(h))
+		#h = F.relu(model.conv6(h))
 		
 		
-		h = F.relu(model.conv7(h))
-		h = F.relu(model.conv8(h))
-		h = F.relu(model.conv9(h))
-		h = F.relu(model.conv10(h))
+		#h = F.relu(model.conv7(h))
+		#h = F.relu(model.conv8(h))
+		#h = F.relu(model.conv9(h))
+		#h = F.relu(model.conv10(h))
 		
 		return h
 
@@ -73,21 +72,21 @@ class Conv(chainer.Chain):
 		self.clear()
 
 		h = F.relu(model.conv1(x))
-		h = F.relu(model.conv2(h))
+		#h = F.relu(model.conv2(h))
 		
-		h = F.relu(model.conv3(h))
-		h = F.relu(model.conv4(h))
+		#h = F.relu(model.conv3(h))
+		#h = F.relu(model.conv4(h))
 		
 				
-		h = F.relu(model.conv5(h))
-		h = F.relu(model.conv6(h))
+		#h = F.relu(model.conv5(h))
+		#h = F.relu(model.conv6(h))
 		
 		
-		h = F.relu(model.conv7(h))
-		h = F.relu(model.conv8(h))
+		#h = F.relu(model.conv7(h))
+		#h = F.relu(model.conv8(h))
 
-		h = F.relu(model.conv9(h))
-		h = F.relu(model.conv10(h))
+		#h = F.relu(model.conv9(h))
+		#h = F.relu(model.conv10(h))
 			
 		loss = F.mean_squared_error(h, t)
 		return loss
@@ -98,14 +97,14 @@ for layer in range(1):
 	#Root file
 	Ans_PATH= "fuzzy/160420163633_ans"
 	Training_PATH= "fuzzy/160420163633/rt"
-	Result_PATH= "160905_"+str(layer)+"/"
+	Result_PATH= "160909/"
 	
 	#create result input path
-	if os.path.isdir(Result_PATH+str(seq))==False:
-		os.mkdir(Result_PATH+str(seq))
+	if os.path.isdir(Result_PATH)==False:
+		os.mkdir(Result_PATH)
 		
 	### Read answer image
-	Ansfiles = os.listdir('ans_area')
+	Ansfiles = os.listdir(Ans_PATH)
 
 	# 学習対象のモデル作成
 	model = Conv()
