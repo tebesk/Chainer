@@ -32,15 +32,15 @@ class Conv(chainer.Chain):
 			# 入力・出力1ch, ksize=3
 			conv1=F.Convolution2D(1, 32, 5, pad=2),#conv1=F.Convolution2D(1, 32, 3, pad=1),
 			conv2=F.Convolution2D(32, 1, 5, pad=2),
-			conv3=F.Convolution2D(1, 32, 5, pad=2),#conv1=F.Convolution2D(1, 32, 3, pad=1),
-			conv4=F.Convolution2D(32, 1, 5, pad=2),
-			conv5=F.Convolution2D(1, 64, 5, pad=2),#conv1=F.Convolution2D(1, 32, 3, pad=1),
-			conv6=F.Convolution2D(64, 1, 5, pad=2),
-			conv7=F.Convolution2D(1, 64, 3, pad=1),#conv1=F.Convolution2D(1, 32, 3, pad=1),
-			conv8=F.Convolution2D(64, 1, 3, pad=1),
-			conv9=F.Convolution2D(1, 64, 5, pad=2),#conv1=F.Convolution2D(1, 32, 3, pad=1),
-			conv10=F.Convolution2D(64, 1, 5, pad=2),
-			norm1=L.BatchNormalization(1),
+			#conv3=F.Convolution2D(1, 32, 5, pad=2),#conv1=F.Convolution2D(1, 32, 3, pad=1),
+			#conv4=F.Convolution2D(32, 1, 5, pad=2),
+			#conv5=F.Convolution2D(1, 64, 5, pad=2),#conv1=F.Convolution2D(1, 32, 3, pad=1),
+			#conv6=F.Convolution2D(64, 1, 5, pad=2),
+			#conv7=F.Convolution2D(1, 64, 3, pad=1),#conv1=F.Convolution2D(1, 32, 3, pad=1),
+			#conv8=F.Convolution2D(64, 1, 3, pad=1),
+			#conv9=F.Convolution2D(1, 64, 5, pad=2),#conv1=F.Convolution2D(1, 32, 3, pad=1),
+			#conv10=F.Convolution2D(64, 1, 5, pad=2),
+			#norm1=L.BatchNormalization(1),
 		)
 
 	def clear(self):
@@ -50,8 +50,8 @@ class Conv(chainer.Chain):
 	def forward(self, x,layer,train=True):
 		self.clear()
 		
-		h = F.relu(model.conv1(x))
-		#h = F.relu(model.conv2(h))
+		h = model.conv1(x))
+		h = model.conv2(h))
 		
 		#h = F.relu(model.conv3(h))
 		#h = F.relu(model.conv4(h))
@@ -71,8 +71,8 @@ class Conv(chainer.Chain):
 	def calc_loss(self, x, t,layer,train=True):
 		self.clear()
 
-		h = F.relu(model.conv1(x))
-		#h = F.relu(model.conv2(h))
+		h = model.conv1(x))
+		h = model.conv2(h))
 		
 		#h = F.relu(model.conv3(h))
 		#h = F.relu(model.conv4(h))
