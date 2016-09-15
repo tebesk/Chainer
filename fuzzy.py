@@ -50,8 +50,8 @@ class Conv(chainer.Chain):
 	def forward(self, x,layer,train=True):
 		self.clear()
 		
-		h = model.conv1(x))
-		h = model.conv2(h))
+		h = model.conv1(x)
+		h = model.conv2(h)
 		
 		#h = F.relu(model.conv3(h))
 		#h = F.relu(model.conv4(h))
@@ -71,8 +71,8 @@ class Conv(chainer.Chain):
 	def calc_loss(self, x, t,layer,train=True):
 		self.clear()
 
-		h = model.conv1(x))
-		h = model.conv2(h))
+		h = model.conv1(x)
+		h = model.conv2(h)
 		
 		#h = F.relu(model.conv3(h))
 		#h = F.relu(model.conv4(h))
@@ -96,8 +96,8 @@ for layer in range(1):
 
 	#Root file
 	Ans_PATH= "fuzzy/160420163633_ans"
-	Training_PATH= "fuzzy/160420163633/rt"
-	Result_PATH= "160909/"
+	Training_PATH= "fuzzy/160420163633/D_Th"
+	Result_PATH= "160915/"
 	
 	#create result input path
 	if os.path.isdir(Result_PATH)==False:
