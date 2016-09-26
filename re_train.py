@@ -52,37 +52,17 @@ class Conv(chainer.Chain):
 		
 		h = F.relu(model.conv1(x))
 		h = F.relu(model.conv2(h))
-		if layer == 0:
-			h = F.relu(F.average_pooling_2d(h,3,1,pad=1))
-		if layer == 1:
-			h = F.relu(F.average_pooling_2d(h,5,1,pad=2))
-		if layer == 2:
-			h = F.relu(F.average_pooling_2d(h,9,1,pad=4))
 
-		h = F.reshape(h,(1,1,256, 300))
 		
 		h = F.relu(model.conv3(h))
 		h = F.relu(model.conv4(h))
 		
-		if layer == 0:
-			h = F.relu(F.average_pooling_2d(h,3,1,pad=1))
-		if layer == 1:
-			h = F.relu(F.average_pooling_2d(h,5,1,pad=2))
-		if layer == 2:
-			h = F.relu(F.average_pooling_2d(h,9,1,pad=4))
-		h = F.reshape(h,(1,1,256, 300))
+
 				
 		h = F.relu(model.conv5(h))
 		h = F.relu(model.conv6(h))
 		
-		if layer == 0:
-			h = F.relu(F.average_pooling_2d(h,3,1,pad=1))
-		if layer == 1:
-			h = F.relu(F.average_pooling_2d(h,5,1,pad=2))
-		if layer == 2:
-			h = F.relu(F.average_pooling_2d(h,9,1,pad=4))
 
-		h = F.reshape(h,(1,1,256, 300))
 		
 		h = F.relu(model.conv7(h))
 		h = F.relu(model.conv8(h))
@@ -96,38 +76,17 @@ class Conv(chainer.Chain):
 
 		h = F.relu(model.conv1(x))
 		h = F.relu(model.conv2(h))
-		if layer == 0:
-			h = F.relu(F.average_pooling_2d(h,3,1,pad=1))
-		if layer == 1:
-			h = F.relu(F.average_pooling_2d(h,5,1,pad=2))
-		if layer == 2:
-			h = F.relu(F.average_pooling_2d(h,9,1,pad=4))
 
-		h = F.reshape(h,(1,1,256, 300))
 		
 		h = F.relu(model.conv3(h))
 		h = F.relu(model.conv4(h))
 		
-		if layer == 0:
-			h = F.relu(F.average_pooling_2d(h,3,1,pad=1))
-		if layer == 1:
-			h = F.relu(F.average_pooling_2d(h,5,1,pad=2))
-		if layer == 2:
-			h = F.relu(F.average_pooling_2d(h,9,1,pad=4))
 
-		h = F.reshape(h,(1,1,256, 300))
 				
 		h = F.relu(model.conv5(h))
 		h = F.relu(model.conv6(h))
 		
-		if layer == 0:
-			h = F.relu(F.average_pooling_2d(h,3,1,pad=1))
-		if layer == 1:
-			h = F.relu(F.average_pooling_2d(h,5,1,pad=2))
-		if layer == 2:
-			h = F.relu(F.average_pooling_2d(h,9,1,pad=4))
 
-		h = F.reshape(h,(1,1,256, 300))
 		
 		h = F.relu(model.conv7(h))
 		h = F.relu(model.conv8(h))
@@ -138,13 +97,14 @@ class Conv(chainer.Chain):
 		return loss
 
 
-for layer in range(3):
+for layer in range(1):
 
 	#Root file
 	Ans_PATH= "ans_area"
 	Training_PATH= "denoised"
 	Result_PATH= "160926_"+str(layer)+"/"
-
+	if os.path.isdir(Result_PATH)==False:
+		os.mkdir(Result_PATH) 
 	### Read answer image
 	Ansfiles = os.listdir('ans_area')
 
@@ -170,7 +130,7 @@ for layer in range(3):
 
 	start = time.time()
 
-	for seq in range(2000):
+	for seq in range(2500):
 		filenames= random.sample(Ansfiles,100)
 		for filename in filenames:
 	#		print(filename)
@@ -188,6 +148,9 @@ for layer in range(3):
 			print("{}: {}".format(seq, loss.data))
 			temp= seq/500
 			temp2= temp*500
+			
+			if os.path.isdir(Result_PATH+str(temp2))==False:
+				os.mkdir(Result_PATH+str(temp2)) 
 			f = open(Result_PATH+str(temp2)+"/a.txt","a")
 			f.write("{}: {}".format(seq, loss.data))
 			f.write("\nelapsed_time:{0}sec\n".format(elapsed_time))
@@ -215,8 +178,7 @@ for layer in range(3):
 		cv2.imwrite(Result_PATH+str(seq)+"/"+filename, cuda.to_cpu(trained))
 	
 	
-	with.open('160926model.pkl','wb') as o:
-		pickle.dump(model,o)
+	chainer.serializers.save_hdf5('160926.model', model)
 	
 	
 
