@@ -143,8 +143,7 @@ for layer in range(3):
 	#Root file
 	Ans_PATH= "ans_area"
 	Training_PATH= "denoised"
-	Result_PATH= "160809_"+str(layer)+"/"
-
+	Result_PATH= "160926_"+str(layer)+"/"
 
 	### Read answer image
 	Ansfiles = os.listdir('ans_area')
@@ -182,6 +181,7 @@ for layer in range(3):
 			model.zerograds()
 			loss.backward()
 			optimizer.update()
+			
 		print (seq)
 		if seq%20==0:
 			elapsed_time = time.time() - start
@@ -213,7 +213,11 @@ for layer in range(3):
 		train_image = chainer.Variable(cuda.cupy.asarray([[cv2.imread(Training_PATH +"/"+filename, 0)/255.0]], dtype=np.float32))
 		trained = model.forward(train_image,layer).data[0][0]*255
 		cv2.imwrite(Result_PATH+str(seq)+"/"+filename, cuda.to_cpu(trained))
-		
+	
+	
+	with.open('160926model.pkl','wb') as o:
+		pickle.dump(model,o)
+	
 	
 
 
