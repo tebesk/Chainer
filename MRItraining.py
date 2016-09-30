@@ -18,7 +18,8 @@ import time
 import cupy
 
 
-
+from PIL import Image
+from matplotlib import pylab as plt
 
 # 引数の処理
 parser = argparse.ArgumentParser(
@@ -75,7 +76,7 @@ for layer in range(1):
 		os.mkdir(Result_PATH) 
 	
 	### Read answer image
-	Ansfiles = os.listdir('ans_area')
+	Ansfiles = os.listdir(Training_PATH)
 
 	# 学習対象のモデル作成
 	model = Conv()
@@ -90,18 +91,17 @@ for layer in range(1):
 
 	#学習の開始
 	for seq in range(2500):
-		filenames= random.sample(Ansfiles,300)
+		filenames= random.sample(Ansfiles,200)
 		for filename in filenames:
 			#opencv file read
-			trn_img = cv2.imread(Training_PATH+"/"+filename, 1)
-			ans_img = cv2.imread(Ans_PATH+"/"+filename,1)
+			#t_img = np.array( Image.open(Training_PATH+"/"+filename) )
+			trn_img = cv2.imread(Training_PATH+"/"+filename, 0)
+			ans_img = cv2.imread(Ans_PATH+"/"+filename,0)
 			
 			#画像内の各ThetaごとにTraining実施
 			for theta in range(512):
-				temp =trn_img[theta:theta+1, 0:599]
-				cv2.imwrite("test.jpg",temp)
-				
-				train_image = chainer.Variable(cuda.cupy.asarray([[cv2.imread("test.jpg", 1)/255.0]], dtype=np.float32))
+				#temp =trn_img[theta: theta+1, 0:599]
+				train_image = chainer.Variable(cuda.cupy.asarray([[trn_img[theta: theta+1, 0:600]/255.0]], dtype=np.float32))
 				target = chainer.Variable(cuda.cupy.asarray([[ans_img[theta:theta+1,0:1]/255.0]], dtype=np.float32))
 		
 				loss = model.calc_loss(train_image, target, layer)
@@ -128,7 +128,7 @@ for layer in range(1):
 			for filename in Ansfiles:
 				trn_img = cv2.imread(Training_PATH+"/"+filename, 0)
 				for theta in range(512):
-					train_image = chainer.Variable(cuda.cupy.asarray([[trn_img[theta: theta+1, 0:599]/255.0]], dtype=np.float32))
+					train_image = chainer.Variable(cuda.cupy.asarray([[trn_img[theta: theta+1, 0:600]/255.0]], dtype=np.float32))
 					trained = model.forward(train_image,layer).data[0][0]*255
 					trn_img[theta,0]=[0,0,255*trained]
 					trn_img[theta,1]=[0,0,255*trained]
@@ -146,7 +146,7 @@ for layer in range(1):
 	for filename in Ansfiles:
 		trn_img = cv2.imread(Training_PATH+"/"+filename, 0)
 		for theta in range(512):
-			train_image = chainer.Variable(cuda.cupy.asarray([[trn_img[theta: theta+1, 0:599]/255.0]], dtype=np.float32))
+			train_image = chainer.Variable(cuda.cupy.asarray([[trn_img[theta: theta+1, 0:600]/255.0]], dtype=np.float32))
 			trained = model.forward(train_image,layer).data[0][0]
 			trn_img[theta,0]=[0,0,255*trained]
 			trn_img[theta,1]=[0,0,255*trained]
