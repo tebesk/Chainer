@@ -68,9 +68,9 @@ class Conv(chainer.Chain):
 for layer in range(1):
 
 	#Root file
-	Ans_PATH= "MRI/kde_ans_gray" 
+	Ans_PATH= "MRI/test" 
 	Training_PATH= "MRI/re_move_ivus"
-	Result_PATH= "160930_"+str(layer)+"/"
+	Result_PATH= "1601011_"+str(layer)+"/"
 	
 	if os.path.isdir(Result_PATH)==False:
 		os.mkdir(Result_PATH) 
@@ -88,21 +88,25 @@ for layer in range(1):
 	optimizer.setup(model)
 
 	start = time.time()
-
+	
+	z = np.array([255.0])
+	
 	#学習の開始
-	for seq in range(2500):
-		filenames= random.sample(Ansfiles,200)
+	for seq in range(2):
+		filenames= random.sample(Ansfiles,2)
 		for filename in filenames:
 			#opencv file read
 			#t_img = np.array( Image.open(Training_PATH+"/"+filename) )
-			trn_img = cv2.imread(Training_PATH+"/"+filename, 0)
-			ans_img = cv2.imread(Ans_PATH+"/"+filename,0)
+			trn_img = cv2.cv.LoadImage(Training_PATH+"/"+filename, 1)
+			ans_img = cv2.cv.LoadImage(Ans_PATH+"/"+filename,1)
 			
 			#画像内の各ThetaごとにTraining実施
+			
 			for theta in range(512):
-				#temp =trn_img[theta: theta+1, 0:599]
-				train_image = chainer.Variable(cuda.cupy.asarray([[trn_img[theta: theta+1, 0:600]/255.0]], dtype=np.float32))
-				target = chainer.Variable(cuda.cupy.asarray([[(ans_img[theta, 0])/255.0]], dtype=np.float32))
+				#train_temp =trn_img[theta: theta+1, 0:600]/255.0
+				ans_temp =ans_img[theta, 0]
+				train_image = chainer.Variable(cuda.cupy.asarray([[trn_img[theta: theta+1, 0:600]/z]], dtype=np.float32))
+				target = chainer.Variable(cuda.cupy.asarray([[ans_temp/z]], dtype=np.float32))
 		
 				loss = model.calc_loss(train_image, target, layer)
 				model.zerograds()
@@ -124,17 +128,22 @@ for layer in range(1):
 			f.close()
 		if seq%500==0:
 			if os.path.isdir(Result_PATH+str(seq))==False:
-				os.mkdir(Result_PATH+str(seq))    		
+				os.mkdir(Result_PATH+str(seq))
 			for filename in Ansfiles:
-				trn_img = cv2.imread(Training_PATH+"/"+filename, 0)
+				trn_img = cv2.cv.LoadImage(Training_PATH+"/"+filename, 1)
 				for theta in range(512):
-					train_image = chainer.Variable(cuda.cupy.asarray([[trn_img[theta: theta+1, 0:600]/255.0]], dtype=np.float32))
+					train_image = chainer.Variable(cuda.cupy.asarray([[trn_img[theta: theta+1, 0:600]/z]], dtype=np.float32))
 					trained = model.forward(train_image,layer).data[0][0]*255
-					trn_img[theta,0]=trained
-					trn_img[theta,1]=trained
-					trn_img[theta,2]=trained
-				cv2.imwrite(Result_PATH+str(seq)+"/"+filename, trn_img)
-			chainer.serializers.save_hdf5(Result_PATH+str(seq)+"/160930.model", model)
+					#####確認のために入れているだけで、後に削除する。
+					f = open(Result_PATH+str(temp2)+"/atetetetet.txt","a")
+					f.write("{},".format(trained))
+					f.close()
+					#####
+					trn_img[theta,0]=[0,0,trained]
+					trn_img[theta,1]=[0,0,trained]
+					trn_img[theta,2]=[0,0,trained]
+				cv2.cv.SaveImage(Result_PATH+str(seq)+"/"+filename, trn_img)
+			chainer.serializers.save_hdf5(Result_PATH+str(seq)+"/161012.model", model)
 			
 
 	# 学習結果の表示
@@ -144,14 +153,14 @@ for layer in range(1):
 		os.mkdir(Result_PATH+str(seq))    
 		
 	for filename in Ansfiles:
-		trn_img = cv2.imread(Training_PATH+"/"+filename, 0)
+		trn_img = cv2.cv.LoadImage(Training_PATH+"/"+filename, 0)
 		for theta in range(512):
-			train_image = chainer.Variable(cuda.cupy.asarray([[trn_img[theta: theta+1, 0:600]/255.0]], dtype=np.float32))
+			train_image = chainer.Variable(cuda.cupy.asarray([[trn_img[theta: theta+1, 0:600]/z]], dtype=np.float32))
 			trained = model.forward(train_image,layer).data[0][0]
-			trn_img[theta,0]=trained
-			trn_img[theta,1]=trained
-			trn_img[theta,2]=trained
-		cv2.imwrite(Result_PATH+str(seq)+"/"+filename, trn_img)
+			trn_img[theta,0]=[0,0,trained]
+			trn_img[theta,1]=[0,0,trained]
+			trn_img[theta,2]=[0,0,trained]
+		cv2.cv.SaveImage(Result_PATH+str(seq)+"/"+filename, trn_img)
 	
 	
-chainer.serializers.save_hdf5('160930.model', model)
+chainer.serializers.save_hdf5(Result_PATH+'161012.model', model)
