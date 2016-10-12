@@ -48,24 +48,39 @@ class Conv(chainer.Chain):
 	def forward(self, x,layer,train=True):
 		self.clear()
 		
+		#print (x.data)
+		#print (x.data.shape)
+		
 		#h = F.relu(model.conv1(x))
 		#h = F.relu(model.conv2(h))
 		h = F.relu(model.l2(x))
 		h = F.relu(model.l3(h))
-		h = F.relu(model.l4(h))
+		h = model.l4(h)
 		
 		return h
 
-	def calc_loss(self, x, t,layer,train=True):
+	def calc_loss(self, x, t,ans,layer,train=True):
 		self.clear()
 		#h = F.relu(model.conv1(x))
 		#h = F.relu(model.conv2(h))
 		h = F.relu(model.l2(x))
 		h = F.relu(model.l3(h))
-		h = F.relu(model.l4(h))
+		h = model.l4(h)
 			
-		#loss = F.mean_squared_error(h, t)
-		loss = F.softmax_cross_entropy(h, t)
+		'''
+		print (h.data)
+		print (t.data)
+		
+		print (h.data.shape)
+		#print (h.data.T)
+		#print (h.data.T.shape)
+		print (ans.shape)
+		'''
+
+
+		#loss = F.softmax_cross_entropy(t, ans)
+		#$loss = F.accuracy(h, t)
+		loss = F.mean_squared_error(h, t)
 		return loss
 
 
@@ -74,7 +89,7 @@ for layer in range(1):
 	#Root file
 	Ans_PATH= "MRI/test" 
 	Training_PATH= "MRI/re_move_ivus"
-	Result_PATH= "1601011_"+str(layer)+"/"
+	Result_PATH= "1601012_"+str(layer)+"/"
 	
 	if os.path.isdir(Result_PATH)==False:
 		os.mkdir(Result_PATH) 
@@ -96,8 +111,8 @@ for layer in range(1):
 	z = np.array([255.0])
 	
 	#学習の開始
-	for seq in range(2):
-		filenames= random.sample(Ansfiles,2)
+	for seq in range(2000):
+		filenames= random.sample(Ansfiles,200)
 		for filename in filenames:
 			#opencv file read
 			#t_img = np.array( Image.open(Training_PATH+"/"+filename) )
@@ -108,19 +123,33 @@ for layer in range(1):
 			
 			for theta in range(512):
 				#train_temp =trn_img[theta: theta+1, 0:600]/255.0
-				ans_temp =ans_img[theta, 0]
-				if(ans_temp >0.6):
-					ansArray = [1,0]
+				ans_temp =ans_img[theta, 0]/255
+				if(ans_temp >0.7):
+					ans = np.asarray([[1,0]],dtype=np.int32)
+					#ansArray = np.asarray(ansArray)
 				else:
-					ansArray = [0,1]
-				f = open(Result_PATH+str(seq)+"/anst.txt","a")
-				f.write("{},".format(trn_img[theta: theta+1, 0:600]/z))
-				f.close()
+					ans = np.asarray([[0,1]],dtype=np.int32)
+					#ansArray = [0,1]
+					#ansArray = np.asarray(ansArray)
 				
-				train_image = chainer.Variable(cuda.cupy.asarray(trn_img[theta: theta+1, 0:600]/z, dtype=np.float32))
-				target =      chainer.Variable(cuda.cupy.asarray(ansArray, dtype=np.int32))
-				#target = chainer.Variable(cuda.cupy.asarray([ans_img[theta, 0]/z], dtype=np.float32))
-				loss = model.calc_loss(train_image, target, layer)
+				ansArray = [ans]
+				'''
+				f = open(Result_PATH+str(seq)+"/anst.txt","a")
+				a=trn_img[theta: theta+1, 0:600]/z
+				#a= a.flatten()
+				
+				f.write("{},{}:".format(a.ndim,ansArray.ndim))
+				f.write("{},{}:".format(a.shape,ansArray.shape))
+				#f.write("{},{}:".format(a.shape[2],ansArray.shape[2]))
+				f.close()
+				'''
+				train_image = chainer.Variable(cuda.cupy.asarray((trn_img[theta: theta+1, 0:600]/z), dtype=np.float32))
+				#train_image = chainer.Variable(cuda.cupy.asarray(a, dtype=np.float32))
+				#target =      chainer.Variable(cuda.cupy.asarray(ansArray, dtype=np.int32))
+				target =     chainer.Variable(cuda.cupy.asarray(ans, dtype=np.float32))
+				
+				
+				loss = model.calc_loss(train_image, target, ans,layer)
 				model.zerograds()
 				loss.backward()
 				optimizer.update()
@@ -146,11 +175,18 @@ for layer in range(1):
 				forsave_img = cv2.cv.LoadImage(Training_PATH+"/"+filename, 0)
 				for theta in range(512):
 					train_image = chainer.Variable(cuda.cupy.asarray([[trn_img[theta: theta+1, 0:600]/z]], dtype=np.float32))
-					trained = model.forward(train_image,layer).data[0][0]*255
+					trained=0
+					if(model.forward(train_image,layer).data[0][0]>=model.forward(train_image,layer).data[0][1]) :
+						trained =255
+					else:
+						trained=0
+
 					#####確認のために入れているだけで、後に削除する。
+					'''
 					f = open(Result_PATH+str(temp2)+"/atetetetet.txt","a")
 					f.write("{},".format(trained))
 					f.close()
+					'''
 					#####
 					forsave_img[theta,0]=[trained]
 					forsave_img[theta,1]=[trained]
