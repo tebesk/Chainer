@@ -35,8 +35,9 @@ class Conv(chainer.Chain):
 			conv2=F.Convolution2D(32, 1, 3, pad=1),
 			conv3=F.Convolution2D(1, 32, 5, pad=2),#conv1=F.Convolution2D(1, 32, 3, pad=1),
 			conv4=F.Convolution2D(32, 1, 5, pad=2),
-			l3=     F.Linear(600, 600),
-			l4=     F.Linear(600, 1),
+			l2=     F.Linear(600, 1800),
+			l3=     F.Linear(1800, 600),
+			l4=     F.Linear(600, 2),
 			norm1=L.BatchNormalization(1),
 		)
 
@@ -47,8 +48,9 @@ class Conv(chainer.Chain):
 	def forward(self, x,layer,train=True):
 		self.clear()
 		
-		h = F.relu(model.conv1(x))
-		h = F.relu(model.conv2(h))
+		#h = F.relu(model.conv1(x))
+		#h = F.relu(model.conv2(h))
+		h = F.relu(model.l2(x))
 		h = F.relu(model.l3(h))
 		h = F.relu(model.l4(h))
 		
@@ -56,12 +58,14 @@ class Conv(chainer.Chain):
 
 	def calc_loss(self, x, t,layer,train=True):
 		self.clear()
-		h = F.relu(model.conv1(x))
-		h = F.relu(model.conv2(h))
+		#h = F.relu(model.conv1(x))
+		#h = F.relu(model.conv2(h))
+		h = F.relu(model.l2(x))
 		h = F.relu(model.l3(h))
 		h = F.relu(model.l4(h))
 			
-		loss = F.mean_squared_error(h, t)
+		#loss = F.mean_squared_error(h, t)
+		loss = F.softmax_cross_entropy(h, t)
 		return loss
 
 
@@ -97,17 +101,25 @@ for layer in range(1):
 		for filename in filenames:
 			#opencv file read
 			#t_img = np.array( Image.open(Training_PATH+"/"+filename) )
-			trn_img = cv2.cv.LoadImage(Training_PATH+"/"+filename, 1)
-			ans_img = cv2.cv.LoadImage(Ans_PATH+"/"+filename,1)
+			trn_img = cv2.cv.LoadImage(Training_PATH+"/"+filename, 0)
+			ans_img = cv2.cv.LoadImage(Ans_PATH+"/"+filename,0)
 			
 			#画像内の各ThetaごとにTraining実施
 			
 			for theta in range(512):
 				#train_temp =trn_img[theta: theta+1, 0:600]/255.0
 				ans_temp =ans_img[theta, 0]
-				train_image = chainer.Variable(cuda.cupy.asarray([[trn_img[theta: theta+1, 0:600]/z]], dtype=np.float32))
-				target = chainer.Variable(cuda.cupy.asarray([[ans_temp/z]], dtype=np.float32))
-		
+				if(ans_temp >0.6):
+					ansArray = [1,0]
+				else:
+					ansArray = [0,1]
+				f = open(Result_PATH+str(seq)+"/anst.txt","a")
+				f.write("{},".format(trn_img[theta: theta+1, 0:600]/z))
+				f.close()
+				
+				train_image = chainer.Variable(cuda.cupy.asarray(trn_img[theta: theta+1, 0:600]/z, dtype=np.float32))
+				target =      chainer.Variable(cuda.cupy.asarray(ansArray, dtype=np.int32))
+				#target = chainer.Variable(cuda.cupy.asarray([ans_img[theta, 0]/z], dtype=np.float32))
 				loss = model.calc_loss(train_image, target, layer)
 				model.zerograds()
 				loss.backward()
@@ -130,7 +142,8 @@ for layer in range(1):
 			if os.path.isdir(Result_PATH+str(seq))==False:
 				os.mkdir(Result_PATH+str(seq))
 			for filename in Ansfiles:
-				trn_img = cv2.cv.LoadImage(Training_PATH+"/"+filename, 1)
+				
+				forsave_img = cv2.cv.LoadImage(Training_PATH+"/"+filename, 0)
 				for theta in range(512):
 					train_image = chainer.Variable(cuda.cupy.asarray([[trn_img[theta: theta+1, 0:600]/z]], dtype=np.float32))
 					trained = model.forward(train_image,layer).data[0][0]*255
@@ -139,10 +152,10 @@ for layer in range(1):
 					f.write("{},".format(trained))
 					f.close()
 					#####
-					trn_img[theta,0]=[0,0,trained]
-					trn_img[theta,1]=[0,0,trained]
-					trn_img[theta,2]=[0,0,trained]
-				cv2.cv.SaveImage(Result_PATH+str(seq)+"/"+filename, trn_img)
+					forsave_img[theta,0]=[trained]
+					forsave_img[theta,1]=[trained]
+					forsave_img[theta,2]=[trained]
+				cv2.cv.SaveImage(Result_PATH+str(seq)+"/"+filename, forsave_img)
 			chainer.serializers.save_hdf5(Result_PATH+str(seq)+"/161012.model", model)
 			
 
@@ -157,9 +170,9 @@ for layer in range(1):
 		for theta in range(512):
 			train_image = chainer.Variable(cuda.cupy.asarray([[trn_img[theta: theta+1, 0:600]/z]], dtype=np.float32))
 			trained = model.forward(train_image,layer).data[0][0]
-			trn_img[theta,0]=[0,0,trained]
-			trn_img[theta,1]=[0,0,trained]
-			trn_img[theta,2]=[0,0,trained]
+			trn_img[theta,0]=trained
+			trn_img[theta,1]=trained
+			trn_img[theta,2]=trained
 		cv2.cv.SaveImage(Result_PATH+str(seq)+"/"+filename, trn_img)
 	
 	
