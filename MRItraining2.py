@@ -32,17 +32,19 @@ class Conv(chainer.Chain):
 	def __init__(self):
 		super(Conv, self).__init__(
 			# 入力・出力1ch, ksize=3
-			conv1=F.Convolution2D(1, 32, 3, pad=1),#conv1=F.Convolution2D(1, 32, 3, pad=1),
-			conv2=F.Convolution2D(32, 1, 3, pad=1),
-			conv3=F.Convolution2D(1, 32, 5, pad=2),#conv1=F.Convolution2D(1, 32, 3, pad=1),
-			conv4=F.Convolution2D(32, 1, 5, pad=2),
+			conv1=F.Convolution2D(1, 16, 3, pad=1),#conv1=F.Convolution2D(1, 32, 3, pad=1),
+			conv2=F.Convolution2D(16, 1, 3, pad=1),
+			conv2_1=F.Convolution2D(80, 1, 3, pad=1),
+			conv3=F.Convolution2D(32, 64, 3, pad=1),#conv1=F.Convolution2D(1, 32, 3, pad=1),
+			conv4=F.Convolution2D(1, 32, 3, pad=1),
 			conv5=F.Convolution2D(32, 64, 5, pad=2),
 			conv6=F.Convolution2D(64, 32, 5, pad=2),
 
-			l1=     F.Linear(600*512, 512),
+			l1=     F.Linear(150*128*16, 512),
 			l2=     F.Linear(512, 512),
-			#l3=     F.Linear(600*512*32, 512),
-			#l4=     F.Linear(600*512*64, 512),
+			l3=     F.Linear(128*150, 512),
+			l4=     F.Linear(1360, 512),
+			l5=     F.Linear(320, 512),
 			norm1=	L.BatchNormalization(1),
 		)
 
@@ -53,60 +55,69 @@ class Conv(chainer.Chain):
 	def forward(self, x,layer, train=True):
 		self.clear()
 		if(layer ==0) :
-			h = F.relu(model.l1(x))
+			h = F.max_pooling_2d(F.relu(model.conv1(x)),4)
+			h = F.relu(model.l1(h))
+			h = F.relu(model.l2(h))
 		elif layer ==1 :
-			h = F.relu(model.l1(x))
+			h = F.spatial_pyramid_pooling_2d(F.relu(model.conv1(x)),4,F.MaxPooling2D)
+			h = F.relu(model.l4(h))
 			h = F.relu(model.l2(h))
 		elif layer ==2 :
-			h = F.relu(model.conv1(x))
-			h = F.relu(model.conv2(h))
+			h = F.average_pooling_2d(F.relu(model.conv1(x)),4)
 			h = F.relu(model.l1(h))
+			h = F.relu(model.l2(h))
 		elif layer ==3 :
-			h = F.relu(model.conv1(x))
-			h = F.relu(model.conv2(h))
-			h = F.relu(model.conv3(h))
-			h = F.relu(model.conv4(h))
-			h = F.relu(model.l1(h))
+			h = F.max_pooling_2d(F.relu(model.conv1(x)),2)
+			h = F.max_pooling_2d(F.relu(model.conv2(h)),2)
+			h = F.relu(model.l3(h))
+			h = F.relu(model.l2(h))
 		elif layer ==4 :
-			h = F.relu(model.conv1(x))
-			h = F.relu(model.conv2(h))
-			h = F.relu(model.conv3(h))
-			h = F.relu(model.conv5(h))
-			h = F.relu(model.conv6(h))
-			h = F.relu(model.conv2(h))
-			h = F.relu(model.l1(h))
-		
+			h = F.max_pooling_2d(F.relu(model.conv4(x)),2)
+			h = F.spatial_pyramid_pooling_2d(F.relu(model.conv3(h)),2,F.MaxPooling2D)
+			h = F.relu(model.l5(h))
+			h = F.relu(model.l2(h))
+		elif layer ==5 :
+			h = F.average_pooling_2d(F.relu(model.conv1(x)),2)
+			h = F.average_pooling_2d(F.relu(model.conv2(h)),2)
+			h = F.relu(model.l3(h))
+			h = F.relu(model.l2(h))
 		return h
 
 	def calc_loss(self, x, t, layer,train=True):
 		self.clear()
 		if(layer ==0) :
-			h = F.relu(model.l1(x))
+			h = F.max_pooling_2d(F.relu(model.conv1(x)),4)
+			h = F.relu(model.l1(h))
+			h = F.relu(model.l2(h))
 		elif layer ==1 :
-			h = F.relu(model.l1(x))
+			h = F.spatial_pyramid_pooling_2d(F.relu(model.conv1(x)),4,F.MaxPooling2D)
+			h = F.relu(model.l4(h))
 			h = F.relu(model.l2(h))
 		elif layer ==2 :
-			h = F.relu(model.conv1(x))
-			h = F.relu(model.conv2(h))
+			h = F.average_pooling_2d(F.relu(model.conv1(x)),4)
 			h = F.relu(model.l1(h))
+			h = F.relu(model.l2(h))
 		elif layer ==3 :
-			h = F.relu(model.conv1(x))
-			h = F.relu(model.conv2(h))
-			h = F.relu(model.conv3(h))
-			h = F.relu(model.conv4(h))
-			h = F.relu(model.l1(h))
+			h = F.max_pooling_2d(F.relu(model.conv1(x)),2)
+			h = F.max_pooling_2d(F.relu(model.conv2(h)),2)
+			h = F.relu(model.l3(h))
+			h = F.relu(model.l2(h))
 		elif layer ==4 :
-			h = F.relu(model.conv1(x))
-			h = F.relu(model.conv2(h))
-			h = F.relu(model.conv3(h))
-			h = F.relu(model.conv5(h))
-			h = F.relu(model.conv6(h))
-			h = F.relu(model.conv2(h))
-			h = F.relu(model.l1(h))
+			h = F.max_pooling_2d(F.relu(model.conv4(x)),2)
+			#print (h.data.shape)
+			h = F.spatial_pyramid_pooling_2d(F.relu(model.conv3(h)),2,F.MaxPooling2D)
+			#print (h.data.shape)
+			h = F.relu(model.l5(h))
+			h = F.relu(model.l2(h))
+		elif layer ==5 :
+			h = F.average_pooling_2d(F.relu(model.conv1(x)),2)
+			h = F.average_pooling_2d(F.relu(model.conv2(h)),2)
+			h = F.relu(model.l3(h))
+			h = F.relu(model.l2(h))
 			
-		
-		print (h.data.shape)
 		'''
+		print (h.data.shape)
+		
 		#t=t.T.data
 		print (t.data)
 		
@@ -124,7 +135,7 @@ for layer in range(5):
 	#Root file
 	Ans_PATH= "MRI/test" 
 	Training_PATH= "MRI/re_move_ivus"
-	Result_PATH= "1601014_"+str(layer)+"/"
+	Result_PATH= "1601019_"+str(layer)+"/"
 	
 	if os.path.isdir(Result_PATH)==False:
 		os.mkdir(Result_PATH) 
@@ -188,7 +199,7 @@ for layer in range(5):
 				#forsave_img = cv2.hconcat([img4, forsave_img]) 
 				#forsave_img = cv2.hconcat([img4, forsave_img]) 
 				cv2.imwrite(Result_PATH+str(seq)+"/"+filename, cuda.to_cpu(trained))
-			chainer.serializers.save_hdf5(Result_PATH+str(seq)+"/161014.model", model)
+			chainer.serializers.save_hdf5(Result_PATH+str(seq)+"/161019.model", model)
 			
 	# 学習finish
 	if os.path.isdir(Result_PATH+str(seq))==False:
@@ -205,4 +216,4 @@ for layer in range(5):
 		cv2.imwrite(Result_PATH+str(seq)+"/"+filename, cuda.to_cpu(trained))
 	
 	
-chainer.serializers.save_hdf5(Result_PATH+'161014.model', model)
+chainer.serializers.save_hdf5(Result_PATH+'161019.model', model)
