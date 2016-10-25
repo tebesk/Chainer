@@ -46,6 +46,11 @@ class Conv(chainer.Chain):
 			l4=     F.Linear(1360, 512),
 			l5=     F.Linear(320, 512),
 			norm1=	L.BatchNormalization(1),
+			norm2=	L.BatchNormalization(16),
+			norm3=	L.BatchNormalization(32),
+			norm4=	L.BatchNormalization(64),
+			norm5=	L.BatchNormalization(1360),
+			norm6=	L.BatchNormalization(320),
 		)
 
 	def clear(self):
@@ -56,29 +61,38 @@ class Conv(chainer.Chain):
 		self.clear()
 		if(layer ==0) :
 			h = F.max_pooling_2d(F.relu(model.conv1(x)),4)
+			h = self.norm2(h,test= not train)                               
 			h = F.relu(model.l1(h))
 			h = F.relu(model.l2(h))
 		elif layer ==1 :
 			h = F.spatial_pyramid_pooling_2d(F.relu(model.conv1(x)),4,F.MaxPooling2D)
+			h = self.norm5(h,test= not train)
 			h = F.relu(model.l4(h))
 			h = F.relu(model.l2(h))
 		elif layer ==2 :
 			h = F.average_pooling_2d(F.relu(model.conv1(x)),4)
+			h = self.norm2(h,test= not train)                               
 			h = F.relu(model.l1(h))
 			h = F.relu(model.l2(h))
 		elif layer ==3 :
 			h = F.max_pooling_2d(F.relu(model.conv1(x)),2)
+			h = self.norm2(h,test= not train)
 			h = F.max_pooling_2d(F.relu(model.conv2(h)),2)
+			h = self.norm1(h,test= not train)
 			h = F.relu(model.l3(h))
 			h = F.relu(model.l2(h))
 		elif layer ==4 :
 			h = F.max_pooling_2d(F.relu(model.conv4(x)),2)
+			h = self.norm3(h,test= not train)
 			h = F.spatial_pyramid_pooling_2d(F.relu(model.conv3(h)),2,F.MaxPooling2D)
+			h = self.norm6(h,test= not train)
 			h = F.relu(model.l5(h))
 			h = F.relu(model.l2(h))
 		elif layer ==5 :
 			h = F.average_pooling_2d(F.relu(model.conv1(x)),2)
+			h = self.norm2(h,test= not train)
 			h = F.average_pooling_2d(F.relu(model.conv2(h)),2)
+			h = self.norm1(h,test= not train)
 			h = F.relu(model.l3(h))
 			h = F.relu(model.l2(h))
 		return h
@@ -87,31 +101,38 @@ class Conv(chainer.Chain):
 		self.clear()
 		if(layer ==0) :
 			h = F.max_pooling_2d(F.relu(model.conv1(x)),4)
+			h = self.norm2(h,test= not train)                               
 			h = F.relu(model.l1(h))
 			h = F.relu(model.l2(h))
 		elif layer ==1 :
 			h = F.spatial_pyramid_pooling_2d(F.relu(model.conv1(x)),4,F.MaxPooling2D)
+			h = self.norm5(h,test= not train)
 			h = F.relu(model.l4(h))
 			h = F.relu(model.l2(h))
 		elif layer ==2 :
 			h = F.average_pooling_2d(F.relu(model.conv1(x)),4)
+			h = self.norm2(h,test= not train)                               
 			h = F.relu(model.l1(h))
 			h = F.relu(model.l2(h))
 		elif layer ==3 :
 			h = F.max_pooling_2d(F.relu(model.conv1(x)),2)
+			h = self.norm2(h,test= not train)
 			h = F.max_pooling_2d(F.relu(model.conv2(h)),2)
+			h = self.norm1(h,test= not train)
 			h = F.relu(model.l3(h))
 			h = F.relu(model.l2(h))
 		elif layer ==4 :
 			h = F.max_pooling_2d(F.relu(model.conv4(x)),2)
-			#print (h.data.shape)
+			h = self.norm3(h,test= not train)
 			h = F.spatial_pyramid_pooling_2d(F.relu(model.conv3(h)),2,F.MaxPooling2D)
-			#print (h.data.shape)
+			h = self.norm6(h,test= not train)
 			h = F.relu(model.l5(h))
 			h = F.relu(model.l2(h))
 		elif layer ==5 :
 			h = F.average_pooling_2d(F.relu(model.conv1(x)),2)
+			h = self.norm2(h,test= not train)
 			h = F.average_pooling_2d(F.relu(model.conv2(h)),2)
+			h = self.norm1(h,test= not train)
 			h = F.relu(model.l3(h))
 			h = F.relu(model.l2(h))
 			
@@ -130,12 +151,12 @@ class Conv(chainer.Chain):
 		return loss
 
 
-for layer in range(5):
+for layer in range(6):
 
 	#Root file
 	Ans_PATH= "MRI/test" 
 	Training_PATH= "MRI/re_move_ivus"
-	Result_PATH= "1601019_"+str(layer)+"/"
+	Result_PATH= "1601025_"+str(layer)+"/"
 	
 	if os.path.isdir(Result_PATH)==False:
 		os.mkdir(Result_PATH) 
@@ -157,7 +178,7 @@ for layer in range(5):
 
 	
 	#学習の開始
-	for seq in range(2500):
+	for seq in range(4000):
 		filenames= random.sample(Ansfiles,50)
 		for filename in filenames:
 			#opencv file read
@@ -199,7 +220,7 @@ for layer in range(5):
 				#forsave_img = cv2.hconcat([img4, forsave_img]) 
 				#forsave_img = cv2.hconcat([img4, forsave_img]) 
 				cv2.imwrite(Result_PATH+str(seq)+"/"+filename, cuda.to_cpu(trained))
-			chainer.serializers.save_hdf5(Result_PATH+str(seq)+"/161019.model", model)
+			chainer.serializers.save_hdf5(Result_PATH+str(seq)+"/161025.model", model)
 			
 	# 学習finish
 	if os.path.isdir(Result_PATH+str(seq))==False:
@@ -216,4 +237,4 @@ for layer in range(5):
 		cv2.imwrite(Result_PATH+str(seq)+"/"+filename, cuda.to_cpu(trained))
 	
 	
-chainer.serializers.save_hdf5(Result_PATH+'161019.model', model)
+#chainer.serializers.save_hdf5(Result_PATH+'161025.model', model)
