@@ -85,6 +85,8 @@ class Conv(chainer.Chain):
 		h = F.relu(model.conv9(h))
 		h = F.relu(model.conv10(h))
 			
+		#print(h.data.shape)
+		#print(t.data.shape)
 		loss = F.mean_squared_error(h, t)
 		return loss
 
@@ -92,9 +94,9 @@ class Conv(chainer.Chain):
 for layer in range(1):
 
 	#Root file
-	Ans_PATH= "IMG2BMP/160914150823.IMG/Ans"
-	Training_PATH= "IMG2BMP/160914150823.IMG/forTraining"
-	Result_PATH= "161011_"+str(layer)+"/"
+	Ans_PATH= "IMG2BMP/160914172223.IMG/Ans"
+	Training_PATH= "IMG2BMP/160914172223.IMG/forTraining"
+	Result_PATH= "161031_"+str(layer)+"/"
 	
 	if os.path.isdir(Result_PATH)==False:
 		os.mkdir(Result_PATH)
@@ -144,19 +146,19 @@ for layer in range(1):
 			temp2= temp*500
 			
 			if os.path.isdir(Result_PATH+str(temp2))==False:
-				os.mkdir(Result_PATH+str(temp2)) 
+				os.mkdir(Result_PATH+str(temp2))
 			f = open(Result_PATH+str(temp2)+"/a.txt","a")
 			f.write("{}: {}".format(seq, loss.data))
 			f.write("\nelapsed_time:{0}sec\n".format(elapsed_time))
 			f.close()
 		if seq%500==0:
 			if os.path.isdir(Result_PATH+str(seq))==False:
-				os.mkdir(Result_PATH+str(seq))    		
+				os.mkdir(Result_PATH+str(seq))
 			for filename in Ansfiles:
 				train_image = chainer.Variable(cuda.cupy.asarray([[cv2.imread(Training_PATH +"/"+filename, 0)/255.0]], dtype=np.float32))
 				trained = model.forward(train_image,layer).data[0][0]*255
 				cv2.imwrite(Result_PATH+str(seq)+"/"+filename, cuda.to_cpu(trained))
-			chainer.serializers.save_hdf5(Result_PATH+str(seq)+"/161011.model", model)
+			chainer.serializers.save_hdf5(Result_PATH+str(seq)+"/161031.model", model)
 	#	print(model.conv1.W.data[0][0])
 	#	trained = model.forward(train_image).data[0][0]*255
 	#	cv2.imwrite("trained.jpg", trained)
@@ -165,12 +167,11 @@ for layer in range(1):
 	print(model.conv1.W.data[0][0])
 
 	if os.path.isdir(Result_PATH+str(seq))==False:
-		os.mkdir(Result_PATH+str(seq))    
+		os.mkdir(Result_PATH+str(seq))
 		
 	for filename in Ansfiles:
 		train_image = chainer.Variable(cuda.cupy.asarray([[cv2.imread(Training_PATH +"/"+filename, 0)/255.0]], dtype=np.float32))
 		trained = model.forward(train_image,layer).data[0][0]*255
 		cv2.imwrite(Result_PATH+str(seq)+"/"+filename, cuda.to_cpu(trained))
 	
-	
-chainer.serializers.save_hdf5('161011.model', model)
+	chainer.serializers.save_hdf5(Result_PATH+str(seq)+"/161011.model", model)
