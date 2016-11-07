@@ -30,17 +30,17 @@ class Conv(chainer.Chain):
 	def __init__(self):
 		super(Conv, self).__init__(
 			# 入力・出力1ch, ksize=3
-			conv1=F.Convolution2D(1, 32, 5, pad=2),#conv1=F.Convolution2D(1, 32, 3, pad=1),
-			conv2=F.Convolution2D(32, 1, 5, pad=2),
-			conv3=F.Convolution2D(1, 32, 5, pad=2),#conv1=F.Convolution2D(1, 32, 3, pad=1),
-			conv4=F.Convolution2D(32, 1, 5, pad=2),
+			conv1=F.Convolution2D(1, 64, 5, pad=2),#conv1=F.Convolution2D(1, 32, 3, pad=1),
+			conv2=F.Convolution2D(64, 1, 5, pad=2),
+			conv3=F.Convolution2D(1, 64, 5, pad=2),#conv1=F.Convolution2D(1, 32, 3, pad=1),
+			conv4=F.Convolution2D(64, 1, 5, pad=2),
 			conv5=F.Convolution2D(1, 64, 5, pad=2),#conv1=F.Convolution2D(1, 32, 3, pad=1),
 			conv6=F.Convolution2D(64, 1, 5, pad=2),
 			conv7=F.Convolution2D(1, 64, 3, pad=1),#conv1=F.Convolution2D(1, 32, 3, pad=1),
 			conv8=F.Convolution2D(64, 1, 3, pad=1),
 			conv9=F.Convolution2D(1, 64, 5, pad=2),#conv1=F.Convolution2D(1, 32, 3, pad=1),
 			conv10=F.Convolution2D(64, 1, 5, pad=2),
-			norm1=L.BatchNormalization(1),
+norm1=L.BatchNormalization(1),
 		)
 
 	def clear(self):
@@ -52,18 +52,23 @@ class Conv(chainer.Chain):
 		
 		h = F.relu(model.conv1(x))
 		h = F.relu(model.conv2(h))
-
+		h = F.relu(self.norm1(h,test= not train))
+		
 		h = F.relu(model.conv3(h))
 		h = F.relu(model.conv4(h))
+		h = F.relu(self.norm1(h,test= not train))
 		
-		h = F.relu(model.conv5(h))
-		h = F.relu(model.conv6(h))
-		
-		h = F.relu(model.conv7(h))
-		h = F.relu(model.conv8(h))
-
-		h = F.relu(model.conv9(h))
-		h = F.relu(model.conv10(h))
+		if layer > 0:
+			h = F.relu(model.conv5(h))
+			h = F.relu(model.conv6(h))
+			h = F.relu(self.norm1(h,test= not train))
+		if layer > 1:
+			h = F.relu(model.conv7(h))
+			h = F.relu(model.conv8(h))
+			h = F.relu(self.norm1(h,test= not train))
+		if layer > 2:
+			h = F.relu(model.conv9(h))
+			h = F.relu(model.conv10(h))
 		
 		return h
 
@@ -72,31 +77,34 @@ class Conv(chainer.Chain):
 
 		h = F.relu(model.conv1(x))
 		h = F.relu(model.conv2(h))
+		h = F.relu(self.norm1(h,test= not train))
 		
 		h = F.relu(model.conv3(h))
 		h = F.relu(model.conv4(h))
-						
-		h = F.relu(model.conv5(h))
-		h = F.relu(model.conv6(h))
+		h = F.relu(self.norm1(h,test= not train))
 		
-		h = F.relu(model.conv7(h))
-		h = F.relu(model.conv8(h))
-		
-		h = F.relu(model.conv9(h))
-		h = F.relu(model.conv10(h))
+		if layer > 0:
+			h = F.relu(model.conv5(h))
+			h = F.relu(model.conv6(h))
+			h = F.relu(self.norm1(h,test= not train))
+		if layer > 1:
+			h = F.relu(model.conv7(h))
+			h = F.relu(model.conv8(h))
+			h = F.relu(self.norm1(h,test= not train))
+		if layer > 2:
+			h = F.relu(model.conv9(h))
+			h = F.relu(model.conv10(h))
 			
-		#print(h.data.shape)
-		#print(t.data.shape)
 		loss = F.mean_squared_error(h, t)
 		return loss
 
 
-for layer in range(1):
+for layer in range(4):
 
 	#Root file
 	Ans_PATH= "IMG2BMP/160914172223.IMG/Ans"
 	Training_PATH= "IMG2BMP/160914172223.IMG/forTraining"
-	Result_PATH= "161031_"+str(layer)+"/"
+	Result_PATH= "161101_"+str(layer)+"/"
 	
 	if os.path.isdir(Result_PATH)==False:
 		os.mkdir(Result_PATH)
@@ -158,7 +166,7 @@ for layer in range(1):
 				train_image = chainer.Variable(cuda.cupy.asarray([[cv2.imread(Training_PATH +"/"+filename, 0)/255.0]], dtype=np.float32))
 				trained = model.forward(train_image,layer).data[0][0]*255
 				cv2.imwrite(Result_PATH+str(seq)+"/"+filename, cuda.to_cpu(trained))
-			chainer.serializers.save_hdf5(Result_PATH+str(seq)+"/161031.model", model)
+			chainer.serializers.save_hdf5(Result_PATH+str(seq)+"/161101.model", model)
 	#	print(model.conv1.W.data[0][0])
 	#	trained = model.forward(train_image).data[0][0]*255
 	#	cv2.imwrite("trained.jpg", trained)
@@ -174,4 +182,4 @@ for layer in range(1):
 		trained = model.forward(train_image,layer).data[0][0]*255
 		cv2.imwrite(Result_PATH+str(seq)+"/"+filename, cuda.to_cpu(trained))
 	
-	chainer.serializers.save_hdf5(Result_PATH+str(seq)+"/161011.model", model)
+	chainer.serializers.save_hdf5(Result_PATH+str(seq)+"/161101.model", model)
