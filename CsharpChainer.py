@@ -90,6 +90,7 @@ class Conv(chainer.Chain):
         cv_image = cv2.imread(Path  + r"\\" + filename, cv2.IMREAD_COLOR)
         orgHeight, orgWidth = cv_image .shape[:2]
         cv_image = cv2.resize(cv_image, (orgHeight//2, orgWidth//2))
+        cv_image = self.Denoising_GaussianBlur_Thresh(cv_image, 15, 30)
 
         ## 最後のtranseposeは RGBRGBRGB ----> RRRRGGGGBBBって感じに変換
         train_image = chainer.Variable(np.asarray([cv_image.transpose(2, 0, 1) / 255.0], dtype=np.float32))
@@ -152,6 +153,11 @@ class Conv(chainer.Chain):
                     os.remove(self.Path+ r"\\tmp_for_dl\\" + tmp_file)
                 elapsed_time = time.time() - start
                 print(("run NN elapsed_time:{0}".format(elapsed_time)), "[sec]")
+
+    def Denoising_GaussianBlur_Thresh(self, img, gauss_num, thresh_num):
+        img_blur_small = cv2.GaussianBlur(img, (gauss_num, gauss_num), 0)
+        ret, thresh = cv2.threshold(img_blur_small, thresh_num, 255, cv2.THRESH_TOZERO)
+        return thresh
 
 
 
