@@ -20,6 +20,7 @@ import cupy
 from PIL import Image
 import shutil
 import Utility
+import  sys
 # 引数の処理
 parser = argparse.ArgumentParser(
     description='train convolution filters')
@@ -165,6 +166,13 @@ if __name__ == "__main__":
     model_name = r"C:\Users\Sakamoto\Source\Repos\XY2RT\XY2RY\SoundFlow\bin\Debug\170130_0.chainermodel"
     Path = r"C:\Users\Sakamoto\PycharmProjects\Chainer\sample"
     Result_PATH = r"C:\Users\Sakamoto\PycharmProjects\Chainer\sample2"
+    #コマンドライン引数　1つ目が実行ファイル（CsharpChainer.pyのPath）、2つめが画像読み込みPath、3つめが書き込みPath
+    argvs = sys.argv
+    argc = len(argvs)
+    if argc>1:
+        Path = argvs[1]
+        Result_PATH = argvs[2]
+
     start = time.time()
     # 既存のモデルを用いて、ネットワーク拡大
     model = Conv(Path, Result_PATH)
